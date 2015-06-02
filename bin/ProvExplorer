@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import optparse
+import os
+import sys
+import traceback
+import datetime
+import secrets_details
+
+
+def main():
+    parser = optparse.OptionParser()
+    parser.add_option('-f', '--file', dest='filename', help='plist details', metavar='FILE')
+    parser.add_option('-p', '--path', dest='path', help='Directory to serach plist in')
+    parser.add_option('-s', '--sort', dest='sort', help='sort methood (date,name,AppID)')
+    (options, args) = parser.parse_args()
+    header = ['UUID', 'Expiration Time', 'Expiration Date', 'Name', 'App Name', 'Application Identifier']
+    output = []
+    if options.filename:
+        try:
+            prov_details = secrets_details.ProvisioningProfile.parse_provisioning(options.filename)
+        except Exception:
+            traceback.print_exc()
+            sys.stderr.write('Error reading details from %s\n' % options.filename)
+            return 1
+        if prov_details:
+            output.append(prov_details)
+    elif options.path:
+        for file in os.listdir(options.path):
+            prov_details = []
+            if file.endswith(".mobileprovision"):
+                try:
+                    prov_details = secrets_details.ProvisioningProfile.parse_provisioning(os.path.join(options.path, file))
+                except Exception:
+                    traceback.print_exc()
+                    sys.stderr.write('Error reading details from %s\n' % os.path.join(options.path, file))
+                if prov_details:
+                    output.append(prov_details)
+    else:
+        parser.print_help()
+        return 1
+    if len(output) > 0:
+        if options.sort and 'date' in options.sort:
+            output.sort(key=lambda x: datetime.datetime.strptime(x[2], '%x'))
+        output = [header] + output
+        csv = [", ".join(x) for x in output]
+        print "\n".join(csv)
+if __name__ == '__main__':
+    sys.exit(main())
