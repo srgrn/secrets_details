@@ -7,7 +7,7 @@ except ImportError:
 config = {
     'description': 'secret_details',
     'author': 'Eran Zimbler',
-    'url': '',
+    'url': 'https://github.com/srgrn/secrets_details',
     'author_email': 'eranz@rumble.me',
     'version': '0.1',
     'install_requires': ['nose'],
