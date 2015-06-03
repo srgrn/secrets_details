@@ -1,2 +1,2 @@
 import ProvisioningProfile
-import PKCS12
+import Certificate

@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+import optparse
+import os
+import sys
+import traceback
+import datetime
+import secrets_details
+
+
+def main():
+    parser = optparse.OptionParser()
+    parser.add_option('-f', '--file', dest='filename', help='certificate file', metavar='FILE')
+    parser.add_option('-p', '--path', dest='path', help='Directory to serach certificates in')
+    parser.add_option('--password', dest='password', help='Supply a password to open p12 files')
+    parser.add_option('--no-pem', dest='disable_pem', help='ignore PEM files', action="store_true")
+    parser.add_option('--no-cer', dest='disable_cer', help='ignore CER,CRT files', action="store_true")
+    parser.add_option('--no-p12', dest='disable_p12', help='ignore P12,PFX files', action="store_true")
+    (options, args) = parser.parse_args()
+    filetypes = ['.cer', '.crt', '.p12', '.pfx', '.pem']
+    if options.disable_p12:
+        filetypes.remove('.p12')
+        filetypes.remove('.pfx')
+    if options.disable_cer:
+        filetypes.remove('.cer')
+        filetypes.remove('.crt')
+    if options.disable_pem:
+        filetypes.remove('.pem')
+    header = ['subject', 'expiration_date', 'filepath']
+    output = []
+    if options.filename:
+        try:
+            cert = secrets_details.Certificate.load_certificate(options.filename, options.password)
+        except Exception:
+            traceback.print_exc()
+            sys.stderr.write('Error reading details from %s\n' % options.filename)
+            return 1
+        if cert:
+            cn = secrets_details.Certificate.get_certificate_cn(cert)
+            expiration_date = secrets_details.Certificate.get_certificate_expiration_date(cert)
+            output.append([cn, expiration_date, options.filename])
+    elif options.path:
+        for dirpath, subdirs, files in os.walk(options.path):
+            for f in files:
+                if '__MACOSX' in dirpath:
+                    continue
+                cert = None
+                if os.path.splitext(f)[1] in filetypes:
+                    try:
+                        cert = secrets_details.Certificate.load_certificate(os.path.join(dirpath, f), options.password)
+                    except Exception, e:
+                        if e.message == [('PKCS12 routines', 'PKCS12_parse', 'mac verify failure')]:
+                            sys.stderr.write('Broken p12 at: %s\n' % os.path.join(dirpath, f))    
+                            # sys.exit(1)
+                        else:
+                            traceback.print_exc()
+                            sys.stderr.write('Error reading details from %s\n' % os.path.join(dirpath, f))
+                    if cert is not None:
+                        cn = secrets_details.Certificate.get_certificate_cn(cert)
+                        expiration_date = secrets_details.Certificate.get_certificate_expiration_date(cert)
+                        output.append([cn, expiration_date, os.path.join(dirpath, f)])
+    else:
+        parser.print_help()
+        return 1
+    if len(output) > 0:
+        output.sort(key=lambda x: x[1])
+        output = [header] + output
+        csv = [x[0] + ", " + str(x[1]) + ", " + x[2] for x in output]
+        print "\n".join(csv)
+    else:
+        print "Failed to find certificates"
+if __name__ == '__main__':
+    sys.exit(main())
