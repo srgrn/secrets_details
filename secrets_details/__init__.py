@@ -1,2 +1,2 @@
 import ProvisioningProfile
-import Certificate
+import certificate

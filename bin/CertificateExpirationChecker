@@ -29,14 +29,14 @@ def main():
     output = []
     if options.filename:
         try:
-            cert = secrets_details.Certificate.load_certificate(options.filename, options.password)
+            cert = secrets_details.certificate.load_certificate(options.filename, options.password)
         except Exception:
             traceback.print_exc()
             sys.stderr.write('Error reading details from %s\n' % options.filename)
             return 1
         if cert:
-            cn = secrets_details.Certificate.get_certificate_cn(cert)
-            expiration_date = secrets_details.Certificate.get_certificate_expiration_date(cert)
+            cn = secrets_details.certificate.get_certificate_cn(cert)
+            expiration_date = secrets_details.certificate.get_certificate_expiration_date(cert)
             output.append([cn, expiration_date, options.filename])
     elif options.path:
         for dirpath, subdirs, files in os.walk(options.path):
@@ -46,7 +46,7 @@ def main():
                 cert = None
                 if os.path.splitext(f)[1] in filetypes:
                     try:
-                        cert = secrets_details.Certificate.load_certificate(os.path.join(dirpath, f), options.password)
+                        cert = secrets_details.certificate.load_certificate(os.path.join(dirpath, f), options.password)
                     except Exception, e:
                         if e.message == [('PKCS12 routines', 'PKCS12_parse', 'mac verify failure')]:
                             sys.stderr.write('Broken p12 at: %s\n' % os.path.join(dirpath, f))    
@@ -55,8 +55,8 @@ def main():
                             traceback.print_exc()
                             sys.stderr.write('Error reading details from %s\n' % os.path.join(dirpath, f))
                     if cert is not None:
-                        cn = secrets_details.Certificate.get_certificate_cn(cert)
-                        expiration_date = secrets_details.Certificate.get_certificate_expiration_date(cert)
+                        cn = secrets_details.certificate.get_certificate_cn(cert)
+                        expiration_date = secrets_details.certificate.get_certificate_expiration_date(cert)
                         output.append([cn, expiration_date, os.path.join(dirpath, f)])
     else:
         parser.print_help()
