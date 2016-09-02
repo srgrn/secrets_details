@@ -11,8 +11,8 @@ config = {
     'author': 'Eran Zimbler',
     'url': 'https://github.com/srgrn/secrets_details',
     'author_email': 'eranz@rumble.me',
-    'version': '0.3',
-    'install_requires': ['nose'],
+    'version': '0.3.1',
+    'install_requires': ['pyOpenSSL'],
     'packages': ['secrets_details'],
     'scripts': ['{}/{}'.format(BINDIR,x) for x in os.listdir(BINDIR)],
     'name': 'secret_details'
