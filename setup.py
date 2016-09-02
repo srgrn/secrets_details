@@ -4,15 +4,17 @@ try:
 except ImportError:
     from distutils.core import setup
 
+import os
+BINDIR = 'bin'
 config = {
     'description': 'secret_details',
     'author': 'Eran Zimbler',
     'url': 'https://github.com/srgrn/secrets_details',
     'author_email': 'eranz@rumble.me',
-    'version': '0.1',
+    'version': '0.2',
     'install_requires': ['nose'],
     'packages': ['secrets_details'],
-    'scripts': ['bin/ProvExplorer'],
+    'scripts': ['{}/{}'.format(BINDIR,x) for x in os.listdir(BINDIR)],
     'name': 'secret_details'
 }
 
